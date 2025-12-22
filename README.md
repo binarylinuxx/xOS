@@ -5,7 +5,9 @@
 
 # xOS in action
 <div align="center">
-https://github.com/user-attachments/assets/1a69f6c9-6e6c-4553-9f98-bb5c71415927
+
+https://github.com/user-attachments/assets/1d193e42-cdc6-4be7-814f-86047f2ab14c
+
 </div>
 
 # build and test 
