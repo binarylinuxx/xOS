@@ -35,4 +35,4 @@ setusername <name> - Set username
 sethost <name>     - Set hostname
 
 # License
-you can do wathever you want with the code and redestribute it as long as you doesnt making any personaly insulting crap and you arent corp
+see [LICESNSE_FILE](https://github.com/binarylinuxx/xOS/blob/main-rolling/LICENSE)
