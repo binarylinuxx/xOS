@@ -58,6 +58,14 @@ static void strncpy(char* dest, const char* src, size_t n) {
     }
 }
 
+// Path helper function
+static void strip_trailing_slash(char* path) {
+    size_t len = strlen(path);
+    if (len > 0 && path[len - 1] == '/') {
+        path[len - 1] = '\0';
+    }
+}
+
 // Number helper functions
 static int is_digit(char c) {
     return c >= '0' && c <= '9';
@@ -170,10 +178,10 @@ static void execute_help() {
     print_str("  calc <expr>        - Calculator (e.g., calc 5 + 3)\n");
     print_str("  setusername <name> - Set username\n");
     print_str("  sethost <name>     - Set hostname\n");
-    //print_str("  ls                 - List files and directories\n");
-    //print_str("  cat <file>         - Display file contents\n");
-    //print_str("  write <file> <text>- Create/write file\n");
-    //print_str("  mkdir <dir>        - Create directory\n");
+    print_str("  ls [dir]           - List files and directories\n");
+    print_str("  cat <file>         - Display file contents\n");
+    print_str("  write <file> <text>- Create/write file\n");
+    print_str("  mkdir <dir>        - Create directory\n");
 }
 
 static void execute_clear() {
@@ -328,12 +336,44 @@ static void execute_sethost(const char* args) {
     }
 }
 
-static void execute_ls() {
+static void execute_ls(const char* args) {
     char buffer[1024];
-    int len = bfs_list_files(buffer, sizeof(buffer));
+    const char* path = (*args) ? args : "/";
+
+    int len = bfs_list_files(path, buffer, sizeof(buffer));
     if (len > 0) {
+        // Parse and color the output
+        char* ptr = buffer;
+        while (*ptr) {
+            char* line_start = ptr;
+            // Find end of line
+            while (*ptr && *ptr != '\n') ptr++;
+
+            // Check if this is a directory (ends with /)
+            int is_dir = 0;
+            if (ptr > line_start && *(ptr - 1) == '/') {
+                is_dir = 1;
+            }
+
+            // Print with appropriate color
+            if (is_dir) {
+                print_set_color(PRINT_COLOR_LIGHT_BLUE, PRINT_COLOR_BLACK);
+            } else {
+                print_set_color(PRINT_COLOR_WHITE, PRINT_COLOR_BLACK);
+            }
+
+            // Print the line
+            char saved = *ptr;
+            *ptr = '\0';
+            print_str(line_start);
+            *ptr = saved;
+
+            if (*ptr == '\n') {
+                print_char('\n');
+                ptr++;
+            }
+        }
         print_set_color(PRINT_COLOR_WHITE, PRINT_COLOR_BLACK);
-        print_str(buffer);
     } else {
         print_set_color(PRINT_COLOR_YELLOW, PRINT_COLOR_BLACK);
         print_str("No files found.\n");
@@ -343,8 +383,14 @@ static void execute_ls() {
 
 static void execute_cat(const char* args) {
     if (*args) {
+        // Make a copy to strip trailing slash
+        char path[256];
+        strncpy(path, args, sizeof(path) - 1);
+        path[sizeof(path) - 1] = '\0';
+        strip_trailing_slash(path);
+
         char buffer[1024];
-        int len = bfs_read_file(args, buffer, sizeof(buffer));
+        int len = bfs_read_file(path, buffer, sizeof(buffer));
         if (len >= 0) {
             print_set_color(PRINT_COLOR_WHITE, PRINT_COLOR_BLACK);
             print_str(buffer);
@@ -363,16 +409,25 @@ static void execute_cat(const char* args) {
 
 static void execute_write(const char* args) {
     if (*args) {
+        // Copy args to a mutable buffer
+        char args_copy[256];
+        strncpy(args_copy, args, sizeof(args_copy) - 1);
+        args_copy[sizeof(args_copy) - 1] = '\0';
+
         // Parse filename and content
-        const char* filename = args;
-        const char* content = args;
+        char* filename = args_copy;
+        char* content = args_copy;
         while (*content && *content != ' ') content++;
+
         if (*content == ' ') {
-            * (char*)content = '\0'; // Temporarily null-terminate
+            *content = '\0'; // Null-terminate filename
             content++;
             while (*content == ' ') content++;
 
             if (*content) {
+                // Strip trailing slash from filename
+                strip_trailing_slash(filename);
+
                 int result = bfs_create_file(filename, content);
                 if (result == 0) {
                     print_set_color(PRINT_COLOR_GREEN, PRINT_COLOR_BLACK);
@@ -390,7 +445,6 @@ static void execute_write(const char* args) {
                 print_str("Error: Content cannot be empty\n");
                 print_set_color(PRINT_COLOR_WHITE, PRINT_COLOR_BLACK);
             }
-            * (char*)(args + (content - args - 1)) = ' '; // Restore space
         } else {
             print_set_color(PRINT_COLOR_RED, PRINT_COLOR_BLACK);
             print_str("Usage: write <filename> <content>\n");
@@ -405,11 +459,17 @@ static void execute_write(const char* args) {
 
 static void execute_mkdir(const char* args) {
     if (*args) {
-        int result = bfs_create_directory(args);
+        // Make a copy to strip trailing slash
+        char path[256];
+        strncpy(path, args, sizeof(path) - 1);
+        path[sizeof(path) - 1] = '\0';
+        strip_trailing_slash(path);
+
+        int result = bfs_create_directory(path);
         if (result == 0) {
             print_set_color(PRINT_COLOR_GREEN, PRINT_COLOR_BLACK);
             print_str("Directory created: ");
-            print_str(args);
+            print_str(path);
             print_str("/\n");
             print_set_color(PRINT_COLOR_WHITE, PRINT_COLOR_BLACK);
         } else {
@@ -459,17 +519,13 @@ static void execute_command() {
     } else if (strcmp(cmd, "sethost") == 0) {
         execute_sethost(args);
     } else if (strcmp(cmd, "ls") == 0) {
-        //execute_ls();
-        print_str("in order to-do");
+        execute_ls(args);
     } else if (strcmp(cmd, "cat") == 0) {
-        //execute_cat(args);
-        print_str("in order to-do");
+        execute_cat(args);
     } else if (strcmp(cmd, "write") == 0) {
-        //execute_write(args);
-        print_str("in order to-do");
+        execute_write(args);
     } else if (strcmp(cmd, "mkdir") == 0) {
-        //execute_mkdir(args);
-        print_str("in order to-do");
+        execute_mkdir(args);
     } else {
         print_set_color(PRINT_COLOR_WHITE, PRINT_COLOR_RED);
         print_str("Unknown command: ");

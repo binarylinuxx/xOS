@@ -22,17 +22,24 @@ qemu-system-x86_64 -cdrom dist/x86_64/xOS.iso # or your preffered virtual machin
 
 # TO-DO
 - trigger shift to get shifted chars
-- add xfs filesystem and rename previusly named bfs while using zig/c/rust
-- implement fs commands after implementing fs
+- add timer driver for uptime and sleep commands
+- implement interrupt driven keyboard instead of polling
+- add exception handlers for page faults and other errors
+- command history with arrow keys
+- implement cd command and current working directory tracking
 
 # Supported commands
 help               - Show this help message
 clear              - Clear the screen
 echo <text>        - Print text
 info               - Show system information
-calc <expr>        - Calculator (e.g., calc 5 - 3)
+calc <expr>        - Calculator (e.g., calc 5 + 3)
 setusername <name> - Set username
 sethost <name>     - Set hostname
+ls [dir]           - List files and directories
+cat <file>         - Display file contents
+write <file> <text>- Create/write file
+mkdir <dir>        - Create directory
 
 # License
 see [LICESNSE_FILE](https://github.com/binarylinuxx/xOS/blob/main-rolling/LICENSE)

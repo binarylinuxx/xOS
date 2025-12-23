@@ -7,9 +7,9 @@ const std = @import("std");
 const RAM_DISK_SIZE = c.BFS_TOTAL_BLOCKS * c.BFS_BLOCK_SIZE;
 var ram_disk: [RAM_DISK_SIZE]u8 = undefined;
 
-var superblock: *c.bfs_superblock_t = @alignCast(@ptrCast(&ram_disk));
-var inodes: [*c]c.bfs_inode_t = @alignCast(@ptrCast(&ram_disk[c.BFS_BLOCK_SIZE]));
-var data_blocks: [*]u8 = ram_disk[c.BFS_BLOCK_SIZE * (1 + ((@sizeOf(c.bfs_inode_t) * c.BFS_MAX_INODES + c.BFS_BLOCK_SIZE - 1) / c.BFS_BLOCK_SIZE))..];
+var superblock: *c.bfs_superblock_t = undefined;
+var inodes: [*c]c.bfs_inode_t = undefined;
+var data_blocks: [*]u8 = undefined;
 
 // Helper functions
 fn find_free_inode() i32 {
@@ -50,6 +50,12 @@ fn find_inode_by_name(name: [*c]const u8) i32 {
 
 // Public API
 export fn bfs_init() void {
+    // Initialize pointers to ram_disk sections
+    superblock = @alignCast(@ptrCast(&ram_disk));
+    inodes = @alignCast(@ptrCast(&ram_disk[c.BFS_BLOCK_SIZE]));
+    const data_start = c.BFS_BLOCK_SIZE * (1 + ((@sizeOf(c.bfs_inode_t) * c.BFS_MAX_INODES + c.BFS_BLOCK_SIZE - 1) / c.BFS_BLOCK_SIZE));
+    data_blocks = @ptrCast(&ram_disk[data_start]);
+
     @memset(&ram_disk, 0);
 
     superblock.* = .{ 

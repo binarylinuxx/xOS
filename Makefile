@@ -20,9 +20,9 @@ $(libc_object_files): build/libc/%.o : src/impl/libc/%.c
 	mkdir -p $(dir $@)
 	gcc -c -I src/intf -ffreestanding -fno-stack-protector $< -o $@
 
-build/fs/bfs.o: src/impl/fs/bfs.zig src/intf/bfs.h
+build/fs/bfs.o: src/impl/fs/bfs.c src/intf/bfs.h
 	mkdir -p $(dir $@)
-	zig build-obj $< -I src/intf -O ReleaseSmall -fno-stack-protector -target x86_64-freestanding-none -femit-bin=$@
+	gcc -c -I src/intf -ffreestanding -fno-stack-protector $< -o $@
 
 $(x86_64_c_object_files): build/x86_64/%.o : src/impl/x86_64/%.c
 	mkdir -p $(dir $@)
