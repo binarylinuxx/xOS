@@ -3,6 +3,13 @@
 
 ![screenshots](screenshots/xOS_01_asset.png)
 
+# xOS in action
+<div align="center">
+
+https://github.com/user-attachments/assets/1d193e42-cdc6-4be7-814f-86047f2ab14c
+
+</div>
+
 # build and test 
 ```
 git clone https://github.com/binarylinuxx/xOS.git
